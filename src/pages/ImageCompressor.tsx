@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Shrink, FileImage, Sparkles, Zap } from 'lucide-react';
+import { Shrink, FileImage, Sparkles, Zap, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { FileUploadZone } from '@/components/ImageCompressor/FileUploadZone';
 import { FileCard, FileData } from '@/components/ImageCompressor/FileCard';
 import { CompressionSettings } from '@/components/ImageCompressor/CompressionSettings';
@@ -272,6 +274,30 @@ export const ImageCompressor = () => {
                         )}
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* PNG Compressor Button */}
+              <Card className="shadow-custom-sm bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
+                <CardContent className="p-6">
+                  <div className="text-center space-y-4">
+                    <div className="w-12 h-12 mx-auto bg-accent/20 rounded-full flex items-center justify-center">
+                      <FileImage className="w-6 h-6 text-accent" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-accent mb-2">Need PNG-Only Compression?</h4>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Use our specialized PNG compressor for lossless compression with transparency preservation.
+                      </p>
+                      <Button asChild className="bg-accent hover:bg-accent/90 w-full">
+                        <Link to="/tools/png-compressor" className="flex items-center justify-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          PNG Compressor
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
