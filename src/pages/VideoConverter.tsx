@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Video, FileVideo, Zap, Settings, Monitor, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
@@ -9,6 +9,8 @@ import { VideoUploadZone } from '@/components/VideoConverter/VideoUploadZone';
 import { VideoCard, VideoData } from '@/components/VideoConverter/VideoCard';
 import { ConversionSettings } from '@/components/VideoConverter/ConversionSettings';
 import { VideoBatchActions } from '@/components/VideoConverter/VideoBatchActions';
+import { useFFmpeg } from '@/hooks/useFFmpeg';
+import { useToast } from '@/hooks/use-toast';
 
 export const VideoConverter = () => {
   const [videos, setVideos] = useState<VideoData[]>([]);
@@ -16,6 +18,12 @@ export const VideoConverter = () => {
   const [quality, setQuality] = useState('80');
   const [resolution, setResolution] = useState('original');
   const [isConverting, setIsConverting] = useState(false);
+  const { loadFFmpeg, convertVideo: ffmpegConvert, isLoaded, isLoading } = useFFmpeg();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadFFmpeg();
+  }, [loadFFmpeg]);
 
   const handleFilesSelect = (newFiles: File[]) => {
     const videoData: VideoData[] = newFiles.map(file => ({
@@ -24,48 +32,80 @@ export const VideoConverter = () => {
       originalSize: file.size,
       progress: 0,
       status: 'pending',
-      duration: '00:00', // Simulated duration
-      resolution: '1920x1080', // Simulated resolution
+      duration: '00:00', // Could be extracted from metadata
+      resolution: '1920x1080', // Could be extracted from metadata
       outputFormat
     }));
     setVideos(prev => [...prev, ...videoData]);
   };
 
-  const convertVideo = async (videoData: VideoData) => {
-    return new Promise<void>((resolve) => {
+  const convertVideo = useCallback(async (videoData: VideoData) => {
+    if (!isLoaded) {
+      toast({
+        title: "FFmpeg not ready",
+        description: "Please wait for the converter to load.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setVideos(prev => prev.map(v => 
+      v.id === videoData.id 
+        ? { ...v, status: 'converting', progress: 0 }
+        : v
+    ));
+
+    try {
+      const convertedBlob = await ffmpegConvert(
+        videoData.file,
+        outputFormat,
+        (progress) => {
+          setVideos(prev => prev.map(v => 
+            v.id === videoData.id 
+              ? { ...v, progress }
+              : v
+          ));
+        }
+      );
+
+      if (convertedBlob) {
+        const convertedSize = convertedBlob.size;
+        setVideos(prev => prev.map(v => 
+          v.id === videoData.id 
+            ? { 
+                ...v, 
+                status: 'completed', 
+                progress: 100,
+                convertedSize,
+                duration: '00:02:15', // Could be extracted from metadata
+                resolution: resolution === 'original' ? '1920x1080' : resolution,
+                outputFormat,
+                convertedBlob
+              }
+            : v
+        ));
+
+        toast({
+          title: "Conversion complete",
+          description: `${videoData.file.name} converted successfully!`
+        });
+      } else {
+        throw new Error('Conversion failed');
+      }
+    } catch (error) {
       setVideos(prev => prev.map(v => 
         v.id === videoData.id 
-          ? { ...v, status: 'converting', progress: 0 }
+          ? { ...v, status: 'error', progress: 0 }
           : v
       ));
 
-      const interval = setInterval(() => {
-        setVideos(prev => prev.map(v => {
-          if (v.id === videoData.id) {
-            if (v.progress >= 100) {
-              clearInterval(interval);
-              // Simulate conversion based on quality and format
-              const qualityNum = parseInt(quality);
-              const formatMultiplier = outputFormat === 'webm' ? 0.8 : outputFormat === 'mp4' ? 0.9 : 1.0;
-              const qualityMultiplier = qualityNum / 100;
-              const convertedSize = Math.round(v.originalSize * formatMultiplier * qualityMultiplier);
-              
-              resolve();
-              return {
-                ...v,
-                status: 'completed',
-                progress: 100,
-                convertedSize,
-                outputFormat
-              };
-            }
-            return { ...v, progress: v.progress + 8 };
-          }
-          return v;
-        }));
-      }, 200);
-    });
-  };
+      toast({
+        title: "Conversion failed",
+        description: `Failed to convert ${videoData.file.name}`,
+        variant: "destructive"
+      });
+    }
+  }, [quality, resolution, outputFormat, isLoaded, ffmpegConvert, toast]);
 
   const handleConvertAll = async () => {
     setIsConverting(true);
@@ -82,14 +122,29 @@ export const VideoConverter = () => {
     setVideos(prev => prev.filter(v => v.id !== id));
   };
 
-  const handleDownloadVideo = (id: string) => {
-    console.log('Downloading video:', id);
-  };
+  const handleDownloadVideo = useCallback((id: string) => {
+    const video = videos.find(v => v.id === id);
+    if (video && video.status === 'completed' && video.convertedBlob) {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(video.convertedBlob);
+      link.download = `converted_${video.file.name.split('.')[0]}.${video.outputFormat}`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+  }, [videos]);
 
-  const handleDownloadAll = () => {
-    const completedVideos = videos.filter(v => v.status === 'completed');
-    console.log('Downloading all completed videos:', completedVideos.length);
-  };
+  const handleDownloadAll = useCallback(() => {
+    const completedVideos = videos.filter(v => v.status === 'completed' && v.convertedBlob);
+    completedVideos.forEach(video => {
+      if (video.convertedBlob) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(video.convertedBlob);
+        link.download = `converted_${video.file.name.split('.')[0]}.${video.outputFormat}`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+    });
+  }, [videos]);
 
   const handleClearAll = () => {
     setVideos([]);
@@ -100,7 +155,8 @@ export const VideoConverter = () => {
       ...v, 
       status: 'pending', 
       progress: 0, 
-      convertedSize: undefined 
+      convertedSize: undefined,
+      convertedBlob: undefined
     })));
   };
 
@@ -124,6 +180,11 @@ export const VideoConverter = () => {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
             Convert multiple video files to different formats with customizable quality and resolution settings.
           </p>
+          {isLoading && (
+            <div className="bg-primary/10 text-primary px-4 py-2 rounded-full border border-primary/20 inline-block">
+              Loading video converter...
+            </div>
+          )}
           {totalVideos > 0 && (
             <div className="flex items-center justify-center gap-4 flex-wrap">
               {mp4Videos > 0 && (
@@ -162,7 +223,7 @@ export const VideoConverter = () => {
                   <CardContent className="p-6">
                     <VideoUploadZone 
                       onFilesSelect={handleFilesSelect}
-                      disabled={isConverting}
+                      disabled={isConverting || isLoading}
                     />
                   </CardContent>
                 </Card>
@@ -195,7 +256,7 @@ export const VideoConverter = () => {
                     <CardContent className="p-4">
                       <VideoUploadZone 
                         onFilesSelect={handleFilesSelect}
-                        disabled={isConverting}
+                        disabled={isConverting || isLoading}
                       />
                     </CardContent>
                   </Card>
@@ -296,7 +357,6 @@ export const VideoConverter = () => {
                 </CardContent>
               </Card>
 
-              {/* Image Converter Link */}
               <Card className="shadow-custom-sm bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
                 <CardContent className="p-6">
                   <div className="text-center space-y-4">

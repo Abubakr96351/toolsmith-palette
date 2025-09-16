@@ -15,6 +15,7 @@ export interface VideoData {
   duration?: string;
   resolution?: string;
   outputFormat?: string;
+  convertedBlob?: Blob;
 }
 
 interface VideoCardProps {
