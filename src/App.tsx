@@ -8,6 +8,7 @@ import { ImageConverter } from "./pages/ImageConverter";
 import { ImageCompressor } from "./pages/ImageCompressor";
 import { PngCompressor } from "./pages/PngCompressor";
 import { VideoConverter } from "./pages/VideoConverter";
+import { BackgroundRemover } from "./pages/BackgroundRemover";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/tools/image-compressor" element={<ImageCompressor />} />
           <Route path="/tools/png-compressor" element={<PngCompressor />} />
           <Route path="/tools/video-converter" element={<VideoConverter />} />
+          <Route path="/tools/background-remover" element={<BackgroundRemover />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
