@@ -12,6 +12,7 @@ import { VideoConverter } from "./pages/VideoConverter";
 import { BackgroundRemover } from "./pages/BackgroundRemover";
 import { ColorPicker } from "./pages/ColorPicker";
 import { Blog } from "./pages/Blog";
+import { BlogPost } from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/tools/background-remover" element={<BackgroundRemover />} />
           <Route path="/tools/color-picker" element={<ColorPicker />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -144,11 +144,13 @@ export const Blog = () => {
                   </div>
                 </div>
                 
-                <Button variant="ghost" className="group/btn p-0 h-auto hover:bg-transparent">
-                  <span className="text-primary group-hover/btn:text-primary-foreground transition-smooth">
-                    Read More
-                  </span>
-                  <ArrowRight className="h-4 w-4 ml-2 text-primary group-hover/btn:translate-x-1 transition-smooth" />
+                <Button variant="ghost" className="group/btn p-0 h-auto hover:bg-transparent" asChild>
+                  <a href={`/blog/${post.id}`}>
+                    <span className="text-primary group-hover/btn:text-primary-foreground transition-smooth">
+                      Read More
+                    </span>
+                    <ArrowRight className="h-4 w-4 ml-2 text-primary group-hover/btn:translate-x-1 transition-smooth" />
+                  </a>
                 </Button>
               </CardContent>
             </Card>
