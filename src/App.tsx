@@ -11,6 +11,7 @@ import { PngCompressor } from "./pages/PngCompressor";
 import { VideoConverter } from "./pages/VideoConverter";
 import { BackgroundRemover } from "./pages/BackgroundRemover";
 import { ColorPicker } from "./pages/ColorPicker";
+import { PdfTools } from "./pages/PdfTools";
 import { Blog } from "./pages/Blog";
 import { BlogPost } from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/tools/video-converter" element={<VideoConverter />} />
           <Route path="/tools/background-remover" element={<BackgroundRemover />} />
           <Route path="/tools/color-picker" element={<ColorPicker />} />
+          <Route path="/tools/pdf-tools" element={<PdfTools />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogPost />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
