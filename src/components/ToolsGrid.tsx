@@ -10,7 +10,11 @@ import {
   Palette,
   FileVideo,
   Music,
-  FileText
+  FileText,
+  Sparkles,
+  Wand2,
+  Brush,
+  Bot
 } from 'lucide-react';
 import { ToolCard } from './ToolCard';
 
@@ -71,6 +75,38 @@ export const ToolsGrid = () => {
       category: 'Image',
       features: ['Multiple formats', 'Color history', 'Palette export'],
       href: '/tools/color-picker'
+    },
+    {
+      title: 'AI Image Generator',
+      description: 'Generate stunning images from text prompts using advanced AI technology.',
+      icon: Sparkles,
+      category: 'AI Image',
+      features: ['Text to image', 'Multiple styles', 'High resolution'],
+      href: '/tools/ai-image-generator'
+    },
+    {
+      title: 'AI Art Creator',
+      description: 'Create artistic images and digital art with AI-powered generation tools.',
+      icon: Brush,
+      category: 'AI Image',
+      features: ['Artistic styles', 'Custom prompts', 'Creative control'],
+      href: '/tools/ai-art-creator'
+    },
+    {
+      title: 'Text to Image',
+      description: 'Transform your text descriptions into beautiful, realistic images instantly.',
+      icon: Wand2,
+      category: 'AI Image',
+      features: ['Natural language', 'Instant generation', 'Multiple variants'],
+      href: '/tools/text-to-image'
+    },
+    {
+      title: 'AI Photo Enhancer',
+      description: 'Enhance and improve your photos using AI-powered enhancement algorithms.',
+      icon: Bot,
+      category: 'AI Image',
+      features: ['Auto enhancement', 'Quality upscaling', 'Smart corrections'],
+      href: '/tools/ai-photo-enhancer'
     },
     {
       title: 'Audio Converter',
