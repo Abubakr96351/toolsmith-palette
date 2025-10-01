@@ -1,0 +1,4 @@
+project_id = "jlsdhvyrnznfovwaanuk"
+
+[functions.analyze-image]
+verify_jwt = false

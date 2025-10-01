@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { pipeline } from '@huggingface/transformers';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AnalysisResult {
   prompt: string;
@@ -66,80 +66,50 @@ export const AiImageToPrompt = () => {
 
     setAnalyzing(true);
     try {
-      // Initialize the image-to-text pipeline
-      const captioner = await pipeline(
-        'image-to-text',
-        'nlpconnect/vit-gpt2-image-captioning',
-        { device: 'webgpu' }
-      );
+      toast.info('Analyzing your image with AI vision...');
 
-      // Generate caption from image
-      const caption = await captioner(previewUrl);
-      
-      // Enhanced prompt generation with style analysis
-      const basePrompt = (caption as any)?.generated_text || (caption as any)?.[0]?.generated_text || 'A detailed image';
-      
-      // Simulate additional analysis (in a real implementation, you might use multiple models)
-      const enhancedPrompt = await enhancePrompt(basePrompt, previewUrl);
-      
+      // Convert image to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(selectedFile);
+      });
+
+      const imageBase64 = await base64Promise;
+
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('analyze-image', {
+        body: { imageBase64 }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to analyze image');
+      }
+
+      if (!data) {
+        throw new Error('No response from AI service');
+      }
+
       setResult({
-        prompt: enhancedPrompt,
-        confidence: 0.92,
-        style: detectStyle(basePrompt),
-        colors: await extractColors(previewUrl),
-        subjects: extractSubjects(basePrompt)
+        prompt: data.prompt,
+        confidence: data.confidence,
+        style: data.style,
+        colors: data.colors || [],
+        subjects: data.subjects || [],
       });
 
       toast.success('Prompt generated successfully!');
     } catch (error) {
       console.error('Analysis error:', error);
-      toast.error('Failed to analyze image. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze image';
+      toast.error(errorMessage);
     } finally {
       setAnalyzing(false);
     }
-  };
-
-  const enhancePrompt = async (basePrompt: string, imageUrl: string): Promise<string> => {
-    // Enhanced prompt with more descriptive language
-    const enhancements = [
-      'highly detailed',
-      'professional photography',
-      'crisp and clear',
-      'vibrant colors',
-      'perfect composition'
-    ];
-    
-    return `${basePrompt}, ${enhancements.join(', ')}, 8k resolution, masterpiece`;
-  };
-
-  const detectStyle = (prompt: string): string => {
-    const styles = {
-      'portrait': ['person', 'face', 'man', 'woman', 'child'],
-      'landscape': ['mountain', 'forest', 'beach', 'sky', 'nature'],
-      'abstract': ['pattern', 'design', 'geometric'],
-      'photography': ['photo', 'camera', 'shot'],
-      'digital art': ['digital', 'art', 'illustration']
-    };
-
-    for (const [style, keywords] of Object.entries(styles)) {
-      if (keywords.some(keyword => prompt.toLowerCase().includes(keyword))) {
-        return style;
-      }
-    }
-    
-    return 'general';
-  };
-
-  const extractColors = async (imageUrl: string): Promise<string[]> => {
-    // Simulate color extraction (in a real implementation, you'd analyze the image)
-    return ['blue', 'white', 'gray', 'green'];
-  };
-
-  const extractSubjects = (prompt: string): string[] => {
-    const subjects = prompt.split(' ').filter(word => 
-      word.length > 3 && !['with', 'that', 'this', 'very'].includes(word.toLowerCase())
-    );
-    return subjects.slice(0, 5);
   };
 
   const copyToClipboard = () => {
