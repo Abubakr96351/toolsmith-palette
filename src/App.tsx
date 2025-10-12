@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Tools from "./pages/Tools";
 import { ImageConverter } from "./pages/ImageConverter";
 import { ImageCompressor } from "./pages/ImageCompressor";
 import { ImageResizer } from "./pages/ImageResizer";
@@ -27,6 +28,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/tools" element={<Tools />} />
           <Route path="/tools/image-converter" element={<ImageConverter />} />
           <Route path="/tools/image-compressor" element={<ImageCompressor />} />
           <Route path="/tools/image-resizer" element={<ImageResizer />} />
