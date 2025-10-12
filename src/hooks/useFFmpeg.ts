@@ -62,8 +62,9 @@ export const useFFmpeg = () => {
       await ffmpeg.deleteFile(inputName);
       await ffmpeg.deleteFile(outputName);
 
-      // Return as blob
-      return new Blob([data], { type: `video/${outputFormat}` });
+      // Return as blob - convert to proper Uint8Array with ArrayBuffer
+      const uint8Array = data instanceof Uint8Array ? new Uint8Array(data) : new Uint8Array();
+      return new Blob([uint8Array], { type: `video/${outputFormat}` });
     } catch (error) {
       console.error('Conversion failed:', error);
       return null;
