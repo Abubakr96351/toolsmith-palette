@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { ToolCard } from './ToolCard';
 
-export const ToolsGrid = () => {
+export const ToolsGrid = ({ showViewAllButton = true }: { showViewAllButton?: boolean }) => {
   const tools = [
     {
       title: 'Image Converter',
@@ -129,15 +129,17 @@ export const ToolsGrid = () => {
         </div>
 
         {/* View All Tools CTA */}
-        <div className="text-center mt-12">
-          <a
-            href="/tools"
-            className="inline-flex items-center space-x-2 text-primary hover:text-primary-glow transition-smooth font-medium"
-          >
-            <span>View All Tools</span>
-            <span className="text-lg">→</span>
-          </a>
-        </div>
+        {showViewAllButton && (
+          <div className="text-center mt-12">
+            <a
+              href="/tools"
+              className="inline-flex items-center space-x-2 text-primary hover:text-primary-glow transition-smooth font-medium"
+            >
+              <span>View All Tools</span>
+              <span className="text-lg">→</span>
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );

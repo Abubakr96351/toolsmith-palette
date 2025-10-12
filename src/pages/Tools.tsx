@@ -17,7 +17,7 @@ const Tools = () => {
             </p>
           </div>
         </div>
-        <ToolsGrid />
+        <ToolsGrid showViewAllButton={false} />
       </main>
       <Footer />
     </div>
